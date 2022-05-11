@@ -1,11 +1,10 @@
+import "gatsby-cypress"
+
 /// <reference types="cypress" />
 
 declare global {
-  interface Window {
-    SHIM_WAS_USED: any
-  }
   namespace Cypress {
-    interface Chainable {
+    interface Chainable<Subject> {
       /**
        * Get a record from a table cell in one of the test components.
        * @example cy.getRecord(Script.dayjs, ResourceRecord.fetchStart)
@@ -16,6 +15,13 @@ declare global {
         metric: string,
         raw?: boolean
       ): Chainable<number | string>
+
+      assertRoute(route: string): Chainable<any>
+
+      /**
+       * Waits for Gatsby to finish the route change, in order to ensure event handlers are properly setup
+       */
+      waitForRouteChange(): Chainable<any>
     }
   }
 }
