@@ -1,23 +1,21 @@
 // https://developer.chrome.com/blog/using-requestidlecallback/#checking-for-requestidlecallback
+// https://github.com/vercel/next.js/blob/canary/packages/next/client/request-idle-callback.ts
 
-function _requestIdleCallback(
-  callback: IdleRequestCallback
-): ReturnType<typeof setTimeout> {
-  const startTime = Date.now()
+export const requestIdleCallback =
+  (typeof self !== `undefined` &&
+    self.requestIdleCallback &&
+    self.requestIdleCallback.bind(window)) ||
+  function (cb: IdleRequestCallback): number {
+    // @ts-ignore - SHIM_WAS_USED not on window
+    if (process.env.CYPRESS_SUPPORT) window.SHIM_WAS_USED = true
 
-  return setTimeout(function () {
-    callback({
-      didTimeout: false,
-      timeRemaining: function () {
-        return Math.max(0, 50.0 - (Date.now() - startTime))
-      },
-    })
-  }, 1)
-}
-
-function _cancelIdleCallback(id?: number | undefined): void {
-  clearTimeout(id)
-}
-
-window.requestIdleCallback = window.requestIdleCallback || _requestIdleCallback
-window.cancelIdleCallback = window.cancelIdleCallback || _cancelIdleCallback
+    const start = Date.now()
+    return setTimeout(function () {
+      cb({
+        didTimeout: false,
+        timeRemaining: function () {
+          return Math.max(0, 50 - (Date.now() - start))
+        },
+      })
+    }, 1) as unknown as number
+  }

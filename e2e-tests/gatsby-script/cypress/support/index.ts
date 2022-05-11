@@ -1,6 +1,9 @@
 /// <reference types="cypress" />
 
 declare global {
+  interface Window {
+    SHIM_WAS_USED: any
+  }
   namespace Cypress {
     interface Chainable {
       /**

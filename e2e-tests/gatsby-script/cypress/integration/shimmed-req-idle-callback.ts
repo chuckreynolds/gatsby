@@ -4,6 +4,11 @@ import { ResourceRecord } from "../../records"
 // The page that we will assert against
 const page = `/scripts-with-sources`
 
+Cypress.on(`window:before:load`, win => {
+  win.requestIdleCallback = undefined
+  window.SHIM_WAS_USED = false
+})
+
 beforeEach(() => {
   // @ts-ignore Object.values does exist, Cypress wants ES5 in tsconfig
   for (const script of [...Object.values(scripts), new RegExp(`framework`)]) {
@@ -13,10 +18,6 @@ beforeEach(() => {
       })
     })
   }
-
-  cy.window().then(win => {
-    win.requestIdleCallback = undefined
-  })
 })
 
 /*
@@ -25,12 +26,16 @@ beforeEach(() => {
  */
 describe(`using the idle strategy with shimmed requestIdleCallback`, () => {
   it(`should load successfully`, () => {
-    cy.visit(page)
+    cy.visit(page).waitForRouteChange()
     cy.getRecord(Script.marked, `success`, true).should(`equal`, `true`)
+
+    cy.window().then(win => {
+      expect(win.SHIM_WAS_USED).to.equal(true)
+    })
   })
 
   it(`should load after other strategies`, () => {
-    cy.visit(page)
+    cy.visit(page).waitForRouteChange()
 
     cy.getRecord(Script.marked, ResourceRecord.fetchStart).then(
       markedFetchStart => {
@@ -40,17 +45,28 @@ describe(`using the idle strategy with shimmed requestIdleCallback`, () => {
         )
       }
     )
+
+    cy.window().then(win => {
+      expect(win.SHIM_WAS_USED).to.equal(true)
+    })
   })
 
   it(`should call an on load callback once the script has loaded`, () => {
-    cy.visit(page)
+    cy.visit(page).waitForRouteChange()
     cy.getRecord(Script.marked, ResourceRecord.responseEnd).then(() => {
       cy.get(`[data-on-load-result=idle]`)
+    })
+    cy.window().then(win => {
+      expect(win.SHIM_WAS_USED).to.equal(true)
     })
   })
 
   it(`should call an on error callback if an error occurred`, () => {
-    cy.visit(page)
+    cy.visit(page).waitForRouteChange()
     cy.get(`[data-on-error-result=idle]`)
+
+    cy.window().then(win => {
+      expect(win.SHIM_WAS_USED).to.equal(true)
+    })
   })
 })
