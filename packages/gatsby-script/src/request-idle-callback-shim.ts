@@ -6,9 +6,6 @@ export const requestIdleCallback =
     self.requestIdleCallback &&
     self.requestIdleCallback.bind(window)) ||
   function (cb: IdleRequestCallback): number {
-    // @ts-ignore - SHIM_WAS_USED not on window
-    if (process.env.CYPRESS_SUPPORT) window.SHIM_WAS_USED = true
-
     const start = Date.now()
     return setTimeout(function () {
       cb({
