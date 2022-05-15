@@ -1,5 +1,3 @@
-import "gatsby-cypress"
-
 /// <reference types="cypress" />
 
 declare global {
